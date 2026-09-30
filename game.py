@@ -48,7 +48,7 @@ def on_pellet_eaten(score, pellets_left):
 
 
 def bonus_life_threshold():
-    return 1000
+    return 300
 
 
 def is_wall(cell):
