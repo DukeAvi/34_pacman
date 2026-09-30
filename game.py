@@ -27,21 +27,28 @@ HOUSE_EXIT, HOUSE_CENTER = (7, 10), (9, 10)
 PLAYER_START = (11, 10)
 FRIGHT_SECONDS = 3.0
 PLAYER_STEP, GHOST_STEP = 0.14, 0.17
-
+PELLET_MESSAGE_UNTIL = 0
 
 def ghost_color(name, mode):
-    """Return an (r, g, b) colour override for a ghost, or None to keep the default."""
-    pass
+    if mode != "frightened":
+        return None
+
+    return {
+        "blinky": (90, 110, 255),
+        "pinky": (120, 90, 255),
+        "inky": (70, 180, 255),
+        "clyde": (80, 140, 230),
+    }.get(name)
 
 
 def on_pellet_eaten(score, pellets_left):
-    """Called after every pellet is eaten; add sound, flashes, or bonus fruit here."""
-    pass
+    global PELLET_MESSAGE_UNTIL
+    if pellets_left == 120:
+        PELLET_MESSAGE_UNTIL = pygame.time.get_ticks() + 1000
 
 
 def bonus_life_threshold():
-    """Return a score value at which the player earns an extra life, or None to disable bonus lives."""
-    pass
+    return 1000
 
 
 def is_wall(cell):
@@ -157,7 +164,7 @@ class Game:
             return
         self.pellets.remove(cell)
         self.score += 10
-        if MAZE[cell[0]][cell[1]] == "O":
+        if MAZE[cell[0]][cell[1]] == "o":
             self.score += 40
             self.fright_left = FRIGHT_SECONDS
             for ghost in self.ghosts:
@@ -240,8 +247,11 @@ class Game:
                 pygame.draw.rect(screen, color, (gx - TILE // 2 + 3, gy - 2, TILE - 6, TILE // 2 - 2))
                 pygame.draw.circle(screen, (255, 255, 255), (gx - 4, gy - 4), 3)
                 pygame.draw.circle(screen, (255, 255, 255), (gx + 4, gy - 4), 3)
-        hud = font.render(f"Score {self.score}   Lives {self.lives}   R = reset", True, (240, 240, 240))
+
+        hud_text = "PELLET BONUS!" if pygame.time.get_ticks() < PELLET_MESSAGE_UNTIL else f"Score {self.score}   Lives {self.lives}   R = reset"
+        hud = font.render(hud_text, True, (240, 240, 240))
         screen.blit(hud, (8, ROWS * TILE + 6))
+
         if self.state != "play":
             text = "YOU WIN! Press R" if self.state == "win" else "GAME OVER - Press R"
             label = font.render(text, True, (255, 255, 120))
